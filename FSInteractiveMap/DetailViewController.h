@@ -7,11 +7,12 @@
 //
 
 #import <UIKit/UIKit.h>
-
+@class FSInteractiveMapView;
 @interface DetailViewController : UIViewController
 
 @property (strong, nonatomic) id detailItem;
 @property (weak, nonatomic) IBOutlet UILabel *detailDescriptionLabel;
+@property (weak, nonatomic) IBOutlet FSInteractiveMapView *mapView;
 
 @end
 

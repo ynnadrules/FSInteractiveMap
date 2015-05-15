@@ -65,21 +65,17 @@
 {
     NSDictionary* data = @{@"asia" : @12,
                            @"australia" : @2,
-                           @"north_america" : @5,
+                           @"north_america" : @100,
                            @"south_america" : @14,
                            @"africa" : @5,
                            @"europe" : @20
                            };
     
-    FSInteractiveMapView* map = [[FSInteractiveMapView alloc] initWithFrame:CGRectMake(16, 96, self.view.frame.size.width - 32, self.view.frame.size.height)];
+    [self.mapView loadMap:@"world-continents-low" withData:data colorAxis:@[[UIColor lightGrayColor], [UIColor darkGrayColor]]];
     
-    [map loadMap:@"world-continents-low" withData:data colorAxis:@[[UIColor lightGrayColor], [UIColor darkGrayColor]]];
-    
-    [map setClickHandler:^(NSString* identifier, CAShapeLayer* layer) {
+    [self.mapView setClickHandler:^(NSString* identifier, CAShapeLayer* layer) {
         self.detailDescriptionLabel.text = [NSString stringWithFormat:@"Continent clicked: %@", identifier];
     }];
-    
-    [self.view addSubview:map];
 }
 
 - (void)initExample2
@@ -91,18 +87,18 @@
                            @"uk" : @17
                            };
     
-    FSInteractiveMapView* map = [[FSInteractiveMapView alloc] initWithFrame:CGRectMake(-1, 64, self.view.frame.size.width + 2, 500)];
-    [map loadMap:@"europe" withData:data colorAxis:@[[UIColor blueColor], [UIColor greenColor], [UIColor yellowColor], [UIColor redColor]]];
+//    FSInteractiveMapView* map = [[FSInteractiveMapView alloc] initWithFrame:CGRectMake(-1, 64, self.view.frame.size.width + 2, 500)];
+    [self.mapView loadMap:@"europe" withData:data colorAxis:@[[UIColor blueColor], [UIColor greenColor], [UIColor yellowColor], [UIColor redColor]]];
     
-    [self.view addSubview:map];
+//    [self.view addSubview:map];
 }
 
 - (void)initExample3
 {
-    FSInteractiveMapView* map = [[FSInteractiveMapView alloc] initWithFrame:CGRectMake(16, 96, self.view.frame.size.width - 32, 500)];
-    [map loadMap:@"usa-low" withColors:nil];
+//    FSInteractiveMapView* map = [[FSInteractiveMapView alloc] initWithFrame:CGRectMake(16, 96, self.view.frame.size.width - 32, 500)];
+    [self.mapView loadMap:@"usa-low" withColors:nil];
     
-    [map setClickHandler:^(NSString* identifier, CAShapeLayer* layer) {
+    [self.mapView setClickHandler:^(NSString* identifier, CAShapeLayer* layer) {
         if(_oldClickedLayer) {
             _oldClickedLayer.zPosition = 0;
             _oldClickedLayer.shadowOpacity = 0;
@@ -118,7 +114,7 @@
         layer.shadowOffset = CGSizeMake(0, 0);
     }];
     
-    [self.view addSubview:map];
+//    [self.view addSubview:map];
 }
 
 @end

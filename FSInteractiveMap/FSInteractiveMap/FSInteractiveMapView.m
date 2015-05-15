@@ -23,10 +23,18 @@
     self = [super initWithFrame:frame];
     
     if(self) {
-        _scaledPaths = [NSMutableArray array];
         [self setDefaultParameters];
     }
     
+    return self;
+}
+
+- (instancetype)initWithCoder:(NSCoder *)coder
+{
+    self = [super initWithCoder:coder];
+    if (self) {
+        [self setDefaultParameters];
+    }
     return self;
 }
 
@@ -36,27 +44,70 @@
     self.strokeColor = [UIColor colorWithWhite:0.6 alpha:1];
 }
 
+- (NSMutableArray *)scaledPaths {
+    if (!_scaledPaths) {
+        _scaledPaths = [NSMutableArray array];
+    }
+    
+    return _scaledPaths;
+}
+
+//- (CGSize)intrinsicContentSize {
+//    CGFloat scaleHorizontal = CGRectGetWidth(self.frame) / CGRectGetWidth(self.svg.bounds);
+//    CGFloat scaleVertical = CGRectGetHeight(self.frame) / CGRectGetHeight(self.svg.bounds);
+//    
+//    if (scaleHorizontal < scaleVertical) {
+//        return CGSizeMake(<#CGFloat width#>, <#CGFloat height#>)
+//    } else if (scaleVertical > scaleHorizontal) {
+//        
+//    } else {
+//        
+//    }
+//
+//    return CGSizeMake(CGRectGetWidth(self.svg.bounds) * scale, CGRectGetHeight(self.svg.bounds));
+//}
+
+- (void)layoutSublayersOfLayer:(CALayer *)layer
+{
+    [super layoutSublayersOfLayer:layer];
+    
+    if (layer == self.layer) {
+        CGFloat scaleHorizontal = self.frame.size.width / self.svg.bounds.size.width;
+        CGFloat scaleVertical = self.frame.size.height / self.svg.bounds.size.height;
+        CGFloat scale = MIN(scaleHorizontal, scaleVertical);
+        CGFloat xOffset = 0;
+        CGFloat yOffset = 0;
+        
+        if (scale == scaleVertical) {
+            xOffset = scale * CGRectGetWidth(self.frame) / 2.0f;
+        } else {
+            yOffset = scale * CGRectGetHeight(self.frame) / 2.0f;
+        }
+        
+        CGAffineTransform scaleTransform = CGAffineTransformIdentity;
+        scaleTransform = CGAffineTransformMakeScale(scale, scale);
+        scaleTransform = CGAffineTransformTranslate(scaleTransform,-self.svg.bounds.origin.x + xOffset, -self.svg.bounds.origin.y + yOffset);
+        
+        [self.svg.paths enumerateObjectsUsingBlock:^(FSSVGPathElement *path, NSUInteger idx, BOOL *stop) {
+            UIBezierPath *shapePath = [path.path copy];
+            [shapePath applyTransform:scaleTransform];
+            CAShapeLayer *shapeLayer = (CAShapeLayer *)layer.sublayers[idx];
+            shapeLayer.path = shapePath.CGPath;
+            self.scaledPaths[idx] = shapePath;
+        }];
+    }
+}
+
 #pragma mark - SVG map loading
 
 - (void)loadMap:(NSString*)mapName withColors:(NSDictionary*)colorsDict
 {
     _svg = [FSSVG svgWithFile:mapName];
-    
+
     for (FSSVGPathElement* path in _svg.paths) {
-        // Make the map fits inside the frame
-        float scaleHorizontal = self.frame.size.width / _svg.bounds.size.width;
-        float scaleVertical = self.frame.size.height / _svg.bounds.size.height;
-        float scale = MIN(scaleHorizontal, scaleVertical);
         
-        CGAffineTransform scaleTransform = CGAffineTransformIdentity;
-        scaleTransform = CGAffineTransformMakeScale(scale, scale);
-        scaleTransform = CGAffineTransformTranslate(scaleTransform,-_svg.bounds.origin.x, -_svg.bounds.origin.y);
-        
-        UIBezierPath* scaled = [path.path copy];
-        [scaled applyTransform:scaleTransform];
-        
+        UIBezierPath *shapePath = [path.path copy];
         CAShapeLayer *shapeLayer = [CAShapeLayer layer];
-        shapeLayer.path = scaled.CGPath;
         
         // Setting CAShapeLayer properties
         shapeLayer.strokeColor = self.strokeColor.CGColor;
@@ -75,8 +126,7 @@
         }
         
         [self.layer addSublayer:shapeLayer];
-        
-        [_scaledPaths addObject:scaled];
+        [self.scaledPaths addObject:shapePath];
     }
 }
 
